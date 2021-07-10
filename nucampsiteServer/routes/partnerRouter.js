@@ -1,15 +1,14 @@
 const express = require('express');
 const Partner = require('../models/partner');
 const authenticate = require('../authenticate');
+const cors = require('./cors');
 
 const partnerRouter = express.Router();
 
 partnerRouter
   .route('/')
-  .options((req, res) => {
-    res.sendStatus(200);
-  })
-  .get((req, res, next) => {
+  .options(cors.corsWithOptions, (req, res) => res.sendStatus(200))
+.get(cors.cors,(req, res, next) => {
     Partner.find()
       .then((partners) => {
         res.statusCode = 200;
@@ -18,7 +17,7 @@ partnerRouter
       })
       .catch((err) => next(err));
   })
-  .post(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
+  .post(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     Partner.create(req.body)
       .then((partner) => {
         console.log('Partner Created', partner);
@@ -28,11 +27,11 @@ partnerRouter
       })
       .catch((err) => next(err));
   })
-  .put(authenticate.verifyUser, (req, res) => {
+  .put(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res) => {
     res.statusCode = 403;
     res.end('PUT operation not supported on /partners');
   })
-  .delete(
+  .delete( cors.corsWithOptions,
     authenticate.verifyUser,
     authenticate.verifyAdmin,
     (req, res, next) => {
@@ -47,10 +46,8 @@ partnerRouter
   );
 partnerRouter
   .route('/:partnerId')
-  .options((req, res) => {
-    res.sendStatus(200);
-  })
-  .get((req, res, next) => {
+  .options(cors.corsWithOptions, (req, res) => res.sendStatus(200))
+  .get(cors.cors,(req, res, next) => {
     Partner.findById(req.params.partnerId)
       .then((partner) => {
         res.statusCode = 200;
@@ -59,13 +56,13 @@ partnerRouter
       })
       .catch((err) => next(err));
   })
-  .post(authenticate.verifyUser,(req, res) => {
+  .post(cors.corsWithOptions, authenticate.verifyUser,authenticate.verifyAdmin, (req, res) => {
     res.statusCode = 403;
     res.end(
       `POST operation not supported on /partners/${req.params.partnerId}`
     );
   })
-  .put(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
+  .put(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     Partner.findByIdAndUpdate(
       req.params.partnerId,
       {
@@ -80,7 +77,7 @@ partnerRouter
       })
       .catch((err) => next(err));
   })
-  .delete(
+  .delete( cors.corsWithOptions,
     authenticate.verifyUser,
     authenticate.verifyAdmin,
     (req, res, next) => {
